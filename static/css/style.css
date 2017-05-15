@@ -1,0 +1,155 @@
+/* Error styles */
+.error {
+    padding: 15px;
+    text-align: center;
+    border:1px solid;
+}
+
+/* Heading */
+
+.intro-header .site-heading {
+    color: #254b7c;
+}
+
+.subheading {
+    color: #fff;
+}
+
+
+/* ------ Home -------- */
+
+.post-preview {
+    padding: 15px;
+    border: 1px solid #254b7c;
+    margin-bottom: 15px;
+    transition: 1.5s linear all;
+}
+
+.post-preview h2, .post-preview h3,
+.post-preview p {
+    transition: 1.5s linear all;
+}
+
+.post-preview:hover {
+    background-color: #254b7c;
+}
+
+.post-preview:hover h2 {
+    color: #ffd700;
+}
+
+.post-preview:hover h3 {
+    color: #fff;
+}
+
+.post-preview:hover p {
+    color: #fff;
+}
+
+
+/* ----- Theme overrides -----*/
+
+/* Titles */
+
+.post-subtitle {
+    color: #254b7c;
+}
+
+/* Buttons */
+
+.btn:hover {
+    background-color: #254b7c;
+    border-color: #254b7c;
+}
+
+/* Links */
+
+a:hover {
+    color: #254b7c;
+}
+
+/* Horizontal rule */
+
+hr.small {
+    border-color: #254b7c;
+}
+
+/* Textarea */
+
+textarea#content {
+    min-height: 320px;
+}
+
+
+/* -- Comments  -- */
+
+.comment-container {
+    padding: 15px;
+    border: 1px solid gray;
+    margin-bottom: 15px;
+    border: 1px solid #254B7C;
+    margin-bottom: 15px;
+}
+
+.comment-content {
+    background-color: #eee;
+    padding: 15px;
+    border: 1px solid #254B7C;
+
+}
+
+.comment-date {
+    margin-top: 15px;
+}
+
+.comment-user {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border: 1px solid #254B7C;
+    margin-bottom: 15px;
+}
+
+/* -- Votes -- */
+
+.vote-container {
+    display:flex;
+    padding: 15px;
+    justify-content: center;
+}
+
+.vote-container a {
+    text-decoration:none;
+}
+
+.vote-container i {
+    margin-right: 10px;
+}
+
+.up-vote, .down-vote {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid;
+    margin-right: 15px;
+
+}
+
+/* Vote button hover effect */
+
+.up-vote:hover, .down-vote:hover {
+    background-color:#254b7c;
+}
+
+.up-vote:hover a, .down-vote:hover a {
+    color: #fff;
+}
+
+.up-vote:hover p, .down-vote:hover p {
+    color: #fff;
+}
+
+.up-vote a, .down-vote a {
+    margin-right: 10px;
+}
+

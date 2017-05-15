@@ -1,0 +1,31 @@
+{% extends "index.html" %}
+{% block title %} Home {% endblock %}
+{% block content %}
+<div class="row">
+    <div class="posts-container col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+        {% if posts %}
+            {% for post in posts %}
+            <div class="post-preview">
+                <a href="/articles/{{ post.key().id() }}">
+                    <h2 class="post-title">
+                        {{ post.title }}
+                    </h2>
+                    <h3 class="post-subtitle">
+                        {{ post.content | truncate(80) }}
+                    </h3>
+                </a>
+                <p class="post-meta">Date: {{ post.created_at.strftime("%b %d, %Y") }} </p>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="no-posts text-center">
+            <h2 class="post-subtitle">Oops... This seems to be a terrible blog. A blog with no posts...</h2>
+            <hr>
+            <h3 class="post-subtitle"> Could you be kind enough to upload one? This is embarrasing...</h3>
+            <hr>
+            <a href="/posts" class="btn btn-primary btn-lg"> Add One </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

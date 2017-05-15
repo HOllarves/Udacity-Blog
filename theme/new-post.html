@@ -1,0 +1,25 @@
+{% extends "index.html" %}
+{% block title %} New Post {% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <form action="/posts" method="post">
+            <div class="form-group">
+                <label for="title">Title</label>
+                <input type="text" class="form-control" id="title" name="title" placeholder="Title">
+                {% if error_title %}
+                    <p class="error bg-danger">{{ error_title }}</p>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="content">Content</label>
+                <textarea name="content" id="content" class="form-control" rows="5" placeholder="Place your content here"></textarea>
+                {% if error_content %}
+                    <p class="error bg-danger">{{ error_content }}</p>
+                {% endif %}
+            </div>
+            <button type="submit" class="btn btn-default pull-right">Submit</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

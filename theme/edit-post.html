@@ -1,0 +1,28 @@
+{% extends "index.html" %}
+{% block title %} Edit Post {% endblock %}
+{% block author %} By: {{ post.author }} {% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2 class="post-subtitle">Edit your post:</h2>
+        <form action="/posts/edit" method="post">
+            <div class="form-group">
+                <label for="title">Title</label>
+                <input value="{{ post.title }}" type="text" class="form-control" id="title" name="title" placeholder="Title">
+                {% if error_title %}
+                    <p class="error bg-danger">{{ error_title }}</p>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="content">Content</label>
+                <textarea name="content" id="content" class="form-control" rows="5" placeholder="Place your content here"> {{ post.content }}</textarea>
+                {% if error_content %}
+                    <p class="error bg-danger">{{ error_content }}</p>
+                {% endif %}
+            </div>
+            <input type="hidden" name="post_id" value="{{ post.key().id() }}">
+            <button type="submit" class="btn btn-default pull-right">Save</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "index.html" %}
+{% block title %} {{post.title}} {% endblock %}
+{% block author %} By: {{ post.author }} {% endblock %}
+{% block content %}
+    <!-- Post Content -->
+    <div class="row">
+        <div class="col-md-12">
+            <article>
+                {% if auth_error %}
+                    <p class="error bg-danger">{{ auth_error }} </p>
+                {% endif %}
+                {% if error %}
+                    <p class="error bg-danger">{{ error }} </p>
+                {% endif %}
+                <div class="post-content">
+                    <p>{{ post.content | safe }}</p>
+                </div>
+            </article>
+            {% if user_id == post.user_id %}
+                <div class="actions-container col-md-6 col-xs-12 pull-left">
+                    <a class="btn btn-danger" href="/posts/delete?post_id={{ post.key().id() }}">Delete</a>
+                    <a class="btn btn-primary" href="/posts/edit?post_id={{ post.key().id() }}">Edit</a>
+                </div>
+            {% endif %}
+            <div class="vote-container col-md-6 col-xs-12 pull-right">
+                <div class="up-vote col-md-6 text-center">
+                    <a href="/upvote?post_id={{ post.key().id() }}"><i class="fa fa-thumbs-up" aria-hidden="true"></i>Awesome?</a>
+                    <p>[ {{ post.up_votes }} ]</p>
+                </div>
+                <div class="down-vote col-md-6 text-center">
+                    <a href="/downvote?post_id={{ post.key().id() }}"><i class="fa fa-thumbs-down" aria-hidden="true"></i>Sucks?</a>
+                    <p>[ {{ post.down_votes }} ]</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="add-comment-container col-md-12">
+            <h2 class="post-subtitle"> Add Comments </h2>
+            <form action="/comments" method="post">
+                <div class="form-group">
+                    <textarea name="comment" id="comment" class="form-control" rows="5"></textarea>
+                    <input type="hidden" name="post_id" id="post_id" value="{{ post.key().id() }} ">
+                </div>
+                <button type="submit" class="btn btn-default pull-right">Submit</button>
+            </form>
+        </div>
+        {% if comments %}
+        <div class="col-md-12">
+            <h2 class="post-subtitle"> Comments: </h2>
+            {% for comment in comments %}
+                <div class="comment-container">
+                    <div class="comment-user">
+                        <h2> Comment by: {{ comment.username }} </h2>
+                    </div>
+                    <div class="comment-content">
+                        <p> {{ comment.content }} </p>
+                    </div>
+                    <div class="comment-date text-right">
+                        Posted on: {{ comment.created_at.strftime("%b %d, %Y") }}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
