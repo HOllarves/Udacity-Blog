@@ -15,6 +15,12 @@ jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader([template_dir, t
 
 class BaseHandler(webapp2.RequestHandler):
 
+    """
+    Basic operations for all pages.
+    Authentication, cookie handling and
+    rendering.
+    """
+
     @staticmethod
     def render_str(template, **params):
         t = jinja_env.get_template(template)
@@ -23,43 +29,122 @@ class BaseHandler(webapp2.RequestHandler):
     def render(self, template, **kw):
         self.response.out.write(self.render_str(template, **kw))
 
+
     def write(self, *a, **kw):
+
+        '''
+        Renders plain text
+        :param a: text
+        :param kw: other parameters
+        '''
+
         self.response.out.write(*a, **kw)
 
+
     def set_secure_cookie(self, name, val):
+
+        '''
+        Creates a secure cookie
+        :param name: cookie name
+        :param val: cookie value
+        :return: Sets the appropiate header
+        '''
+
         cookie_val = CookieHandler.make_secure_val(val)
         self.response.headers.add_header('Set-Cookie', '%s=%s; Path=/' % (name, cookie_val))
 
+
     def read_secure_cookie(self, name):
+
+        '''
+        Validates the authenticity of a cookie
+        :param name: cookie name to be validated
+        :return: authenticity of the cookie. True or False
+        '''
+
         cookie_val = self.request.cookies.get(name)
         return cookie_val and CookieHandler.check_secure_val(cookie_val)
 
     def login(self, user):
+
+        '''
+        Logs in the user (Sets the appropiate cookies)
+        :param user object
+        :return: Sets the appropiate secure cookies
+        '''
+
         self.set_secure_cookie('user_id', str(user.key().id()))
         self.set_secure_cookie('user_name', str(user.username))
 
     def logout(self):
+
+        '''
+        Remove cookies
+        :return: Sets the appropiate headers
+        '''
+
         self.response.headers.add_header('Set-Cookie', 'user_id=;Path=/')
+        self.response.headers.add_header('Set-Cookie', 'user_name=;Path=/')
 
     def valid_user(self):
+
+        '''
+        Validates that the user making a request is a valid user
+        :return: True if user is valid. Else, None
+        '''
+
         username_cookie = self.request.cookies.get('user_name')
         user_id_cookie = self.request.cookies.get('user_id')
         if username_cookie and user_id_cookie and CookieHandler.check_secure_val(username_cookie) and CookieHandler.check_secure_val(user_id_cookie):
             return True
 
     def get_username(self):
+
+        '''
+         Retrives username from cookie
+        '''
+
         return self.request.cookies.get("user_name").split('|')[0]
 
     def get_user_id(self):
+
+        '''
+        Retrives user_id from cookie
+        '''
+
         return self.request.cookies.get('user_id').split('|')[0]
 
     def format_content(self, content):
+
+        '''
+        Replaces new lines with <br> for 
+        poper HTML rendering
+        :param content: text to be formatted
+        :return: Formatted content 
+        '''
+
         return content.replace('\n', '<br>')
 
     def reformat_content(self, content):
+
+        '''
+        Returns post content to it's previous state.
+        Changing <br> with new lines
+        :param content: text to be formatted 
+        :return: Formatted content
+        '''
+
         return content.replace('<br>', '\n')
 
     def is_users_post(self, p_id):
+
+        '''
+        Validates that a particular post
+        belongs to the logged in user
+        :param p_id: post_id to be validated
+        :return: True if the logged user owns the post
+        '''
+
         p = Post.get_post(p_id)
         if p.author == self.get_username() and p.user_id == self.get_user_id():
             return True
@@ -67,6 +152,11 @@ class BaseHandler(webapp2.RequestHandler):
 
 
 class Home(BaseHandler):
+
+    '''
+    Home page
+    template: theme/home.html
+    '''
 
     def get(self):
         username = None
@@ -79,6 +169,11 @@ class Home(BaseHandler):
         self.render("home.html", username=username, posts=posts)
 
 class Signup(BaseHandler):
+
+    '''
+    Sign Up Page
+    template: theme/sign-up.html
+    '''
 
     def get(self):
         self.render("sign-up.html")
@@ -93,6 +188,7 @@ class Signup(BaseHandler):
         params = dict(username = username,
                       email = email)
 
+        # Validating all fields
         if not Validation.valid_username(username):
             params["error_username"] = "That's not a valid username."
             have_error = True
@@ -114,12 +210,18 @@ class Signup(BaseHandler):
         if have_error:
             self.render("sign-up.html", **params)
         else:
+            # Creates new user
             new_user = User.register(username, password, email)
             new_user.put()
             self.login(new_user)
             self.redirect("/")
 
 class Login(BaseHandler):
+
+    '''
+    Login Page
+    template: theme/login.html
+    '''
 
     def get(self):
         if self.request.cookies.get("user_name"):
@@ -135,6 +237,7 @@ class Login(BaseHandler):
         params = dict(error_username = None,
                       error_password = None)
 
+        # Validates fields
         if not Validation.valid_username(username):
             params["error_username"] = "That's not a valid username."
             have_error = True
@@ -146,6 +249,7 @@ class Login(BaseHandler):
         if have_error:
             self.render("login.html", **params)
         else:
+            # Login user
             log_user = User.login(username, password)
             if log_user:
                 self.login(log_user)
@@ -155,6 +259,11 @@ class Login(BaseHandler):
 
 
 class Posts(BaseHandler):
+
+    '''
+    Posts Page
+    template: theme/new-post.html
+    '''
 
     def get(self):
         if self.valid_user():
@@ -174,6 +283,7 @@ class Posts(BaseHandler):
             title = self.request.get("title")
             content = self.request.get("content")
 
+            # Validating post fields
             if not Validation.valid_title(title):
                 have_error = True
                 params["error_title"] = "Title is too small"
@@ -185,6 +295,7 @@ class Posts(BaseHandler):
             if have_error:
                 self.render("new-post.html", **params)
             else:
+                # Formatting content and saving post
                 formatted_content = self.format_content(content)
                 new_post = Post.add(user_id, author, title, formatted_content)
                 new_post.put()
@@ -192,6 +303,11 @@ class Posts(BaseHandler):
 
 
 class DeletePost(BaseHandler):
+
+    '''
+    Delete Post Handler
+    '''
+
     def get(self):
         p_id = self.request.get("post_id")
         if self.valid_user():
@@ -203,6 +319,11 @@ class DeletePost(BaseHandler):
             self.redirect('/')
 
 class EditPost(BaseHandler):
+
+    '''
+    Edit post handler
+    template: theme/edit-post
+    '''
 
     def get(self):
         if self.valid_user():
@@ -231,6 +352,11 @@ class EditPost(BaseHandler):
 
 class Articles(BaseHandler):
 
+    '''
+    Articles Page
+    tempalte: theme/post.html
+    '''
+
     def get(self, p_id):
         username = self.get_username()
         user_id = self.get_user_id()
@@ -240,6 +366,10 @@ class Articles(BaseHandler):
         self.render("post.html", post=post, username=username, comments=comments, user_id=user_id)
 
 class Comments(BaseHandler):
+
+    '''
+    Comments Handler
+    '''
 
     def post(self):
         if self.valid_user():
@@ -256,6 +386,10 @@ class Comments(BaseHandler):
 
 
 class UpVotes(BaseHandler):
+
+    '''
+    Up Vote handler
+    '''
 
     def get(self):
         if self.valid_user():
@@ -281,6 +415,10 @@ class UpVotes(BaseHandler):
 
 class DownVote(BaseHandler):
 
+    '''
+    Down Vote Handler
+    '''
+
     def get(self):
         if self.valid_user():
             post_id = self.request.get('post_id')
@@ -295,6 +433,8 @@ class DownVote(BaseHandler):
                 self.render("post.html", post=post, username=username, comments=comments, user_id=user_id, error="You already voted today")
         else:
             self.redirect('/')
+
+# Defining routes and mapping to classes/handlers
 
 app = webapp2.WSGIApplication([('/', Home),
                                ('/signup', Signup),
