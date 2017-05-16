@@ -104,15 +104,16 @@ class BaseHandler(webapp2.RequestHandler):
          Retrives username from cookie
         '''
 
-        return self.request.cookies.get("user_name").split('|')[0]
+        if self.request.cookies.get('user_name'):
+            return self.request.cookies.get('user_name').split('|')[0]
 
     def get_user_id(self):
 
         '''
         Retrives user_id from cookie
         '''
-
-        return self.request.cookies.get('user_id').split('|')[0]
+        if self.request.cookies.get('user_id'):
+            return self.request.cookies.get('user_id').split('|')[0]
 
     def format_content(self, content):
 
@@ -316,7 +317,7 @@ class DeletePost(BaseHandler):
                 post.delete()
                 self.redirect('/')
         else:
-            self.redirect('/')
+            self.redirect('/login')
 
 class EditPost(BaseHandler):
 
@@ -333,7 +334,7 @@ class EditPost(BaseHandler):
             post.content = self.reformat_content(post.content)
             self.render("edit-post.html", post=post, username=username)
         else:
-            self.redirect('/')
+            self.redirect('/login')
 
     def post(self):
         if self.valid_user():
@@ -346,7 +347,7 @@ class EditPost(BaseHandler):
             post.put()
             self.redirect('/articles/%s' % p_id)
         else:
-            self.redirect('/')
+            self.redirect('/login')
 
 
 
@@ -358,11 +359,10 @@ class Articles(BaseHandler):
     '''
 
     def get(self, p_id):
-        username = self.get_username()
-        user_id = self.get_user_id()
+        username = self.get_username() or None
+        user_id = self.get_user_id() or None
         post = Post.get_post(p_id)
         comments = Comment.by_post_id(p_id)
-        print comments
         self.render("post.html", post=post, username=username, comments=comments, user_id=user_id)
 
 class Comments(BaseHandler):
@@ -411,7 +411,7 @@ class UpVotes(BaseHandler):
                 self.render("post.html", post=post, username=username, comments=comments, user_id=user_id, error="You already voted today")
 
         else:
-            self.redirect('/')
+            self.redirect('/login')
 
 class DownVote(BaseHandler):
 
@@ -432,7 +432,7 @@ class DownVote(BaseHandler):
             else:
                 self.render("post.html", post=post, username=username, comments=comments, user_id=user_id, error="You already voted today")
         else:
-            self.redirect('/')
+            self.redirect('/login')
 
 # Defining routes and mapping to classes/handlers
 
