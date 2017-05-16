@@ -236,6 +236,7 @@ class Articles(BaseHandler):
         user_id = self.get_user_id()
         post = Post.get_post(p_id)
         comments = Comment.by_post_id(p_id)
+        print comments
         self.render("post.html", post=post, username=username, comments=comments, user_id=user_id)
 
 class Comments(BaseHandler):
@@ -246,7 +247,7 @@ class Comments(BaseHandler):
             content = self.request.get("comment")
             username = self.get_username()
             user_id = self.get_user_id()
-            new_comment = Comment.add(username=username, u_id=user_id, p_id=post_id, content=content)
+            new_comment = Comment.add(username=username, u_id=user_id, p_id=post_id.strip(), content=content)
             new_comment.put()
             self.redirect('/articles/%s' % post_id)
         else:
