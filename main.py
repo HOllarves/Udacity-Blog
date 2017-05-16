@@ -258,6 +258,19 @@ class Login(BaseHandler):
             else:
                 self.render("login.html", credential_error="There seems to be an error with your credentials, please check")
 
+class Logout(BaseHandler):
+
+    '''
+    Logout handler
+    '''
+
+    def get(self):
+        if self.valid_user():
+            self.logout()
+            self.redirect('/')
+        else:
+            self.redirect('/')
+
 
 class Posts(BaseHandler):
 
@@ -355,15 +368,16 @@ class Articles(BaseHandler):
 
     '''
     Articles Page
-    tempalte: theme/post.html
+    template: theme/post.html
     '''
 
     def get(self, p_id):
-        username = self.get_username() or None
-        user_id = self.get_user_id() or None
+        username = self.get_username()
+        user_id = self.get_user_id()
         post = Post.get_post(p_id)
         comments = Comment.by_post_id(p_id)
         self.render("post.html", post=post, username=username, comments=comments, user_id=user_id)
+
 
 class Comments(BaseHandler):
 
@@ -439,6 +453,7 @@ class DownVote(BaseHandler):
 app = webapp2.WSGIApplication([('/', Home),
                                ('/signup', Signup),
                                ('/login', Login),
+                               ('/logout', Logout),
                                ('/posts', Posts),
                                ('/posts/delete', DeletePost),
                                ('/posts/edit', EditPost),
