@@ -11,7 +11,7 @@
                         {{ post.title }}
                     </h2>
                     <h3 class="post-subtitle">
-                        {{ post.content | truncate(80) }}
+                        {{ post.content | truncate(80) | safe }}
                     </h3>
                 </a>
                 <p class="post-meta">Date: {{ post.created_at.strftime("%b %d, %Y") }} </p>
