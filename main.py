@@ -486,15 +486,22 @@ class DownVote(BaseHandler):
     @decorators.post_exists
     def get(self, post_id):
         if self.valid_user():
+            post = Post.get_post(post_id)
             username = self.get_username()
             comments = Comment.by_post_id(post_id)
             user_id = self.get_user_id()
-            post = Post.get_post(post_id)
-            if (datetime.utcnow() - post.last_vote) > timedelta(1):
+            print
+            if post.last_vote == None:
+                post.last_vote = datetime.utcnow()
                 post.add_down_vote()
+                self.redirect('/articles/%s' % post_id)
+            elif (datetime.utcnow() - post.last_vote) > timedelta(1):
+                post.add_down_vote()
+                post.last_vote = datetime.utcnow()
                 self.redirect('/articles/%s' % post_id)
             else:
                 self.render("post.html", post=post, username=username, comments=comments, user_id=user_id, error="You already voted today")
+
         else:
             self.redirect('/login')
 
