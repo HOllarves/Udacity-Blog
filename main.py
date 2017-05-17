@@ -1,5 +1,4 @@
 import os
-from datetime import datetime, timedelta
 from Models.User import User
 from Models.Post import Post
 from Models.Comment import  Comment
@@ -341,7 +340,6 @@ class EditPost(BaseHandler):
     @decorators.is_users_post
     def post(self, post_id):
         if self.valid_user():
-
             have_error = False
             params = dict(error_title=None,
                           error_content=None)
@@ -456,24 +454,14 @@ class UpVotes(BaseHandler):
     '''
 
     @decorators.post_exists
+    @decorators.can_vote
     def get(self, post_id):
         if self.valid_user():
             post = Post.get_post(post_id)
-            username = self.get_username()
-            comments = Comment.by_post_id(post_id)
-            user_id = self.get_user_id()
-            print
-            if post.last_vote == None:
-                post.last_vote = datetime.utcnow()
-                post.add_up_vote()
-                self.redirect('/articles/%s' % post_id)
-            elif (datetime.utcnow() - post.last_vote) > timedelta(1):
-                post.add_up_vote()
-                post.last_vote = datetime.utcnow()
-                self.redirect('/articles/%s' % post_id)
-            else:
-                self.render("post.html", post=post, username=username, comments=comments, user_id=user_id, error="You already voted today")
-
+            post.add_up_vote()
+            user = User.get(self.get_user_id())
+            user.add_vote(post_id)
+            self.redirect('/articles/%s' % post_id)
         else:
             self.redirect('/login')
 
@@ -484,24 +472,14 @@ class DownVote(BaseHandler):
     '''
 
     @decorators.post_exists
+    @decorators.can_vote
     def get(self, post_id):
         if self.valid_user():
             post = Post.get_post(post_id)
-            username = self.get_username()
-            comments = Comment.by_post_id(post_id)
-            user_id = self.get_user_id()
-            print
-            if post.last_vote == None:
-                post.last_vote = datetime.utcnow()
-                post.add_down_vote()
-                self.redirect('/articles/%s' % post_id)
-            elif (datetime.utcnow() - post.last_vote) > timedelta(1):
-                post.add_down_vote()
-                post.last_vote = datetime.utcnow()
-                self.redirect('/articles/%s' % post_id)
-            else:
-                self.render("post.html", post=post, username=username, comments=comments, user_id=user_id, error="You already voted today")
-
+            post.add_down_vote()
+            user = User.get(self.get_user_id())
+            user.add_vote(post_id)
+            self.redirect('/articles/%s' % post_id)
         else:
             self.redirect('/login')
 

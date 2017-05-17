@@ -1,5 +1,6 @@
 from Models.Post import  Post
 from Models.Comment import Comment
+from Models.User import User
 from functools import wraps
 
 def post_exists(f):
@@ -81,3 +82,31 @@ def comment_exists(f):
             self.redirect('/')
             return
     return check_comment_exists
+
+def can_vote(f):
+
+    '''
+    Method decorator that checks if a user can
+    vote in a specific post
+    :param f: decorated function
+    :return: decorated function
+    '''
+
+    @wraps(f)
+    def check_can_vote(self, p_id):
+        post = Post.get_post(p_id)
+        user_id = self.get_user_id()
+        user = User.get(user_id)
+        if post.user_id != str(user.key().id()):
+            if len(user.liked_posts) == 0:
+                return f(self, p_id)
+            else:
+                for i in user.liked_posts:
+                    if i == p_id:
+                        self.render('post.html', post=post, username=user.username, error="It looks you already voted in this post")
+                        return
+                    if i == user.liked_posts[-1]:
+                        return f(self, p_id)
+        else:
+            self.render('post.html', post=post, username=user.username, error="Can't vote on your own post")
+    return check_can_vote

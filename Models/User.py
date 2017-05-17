@@ -12,6 +12,12 @@ class User(db.Model):
     password = db.StringProperty()
     password_salt = db.StringProperty()
     created = db.DateTimeProperty(auto_now_add = True)
+    liked_posts = db.StringListProperty(default = None)
+
+
+    def add_vote(self, post_id):
+        self.liked_posts.append(post_id)
+        self.put()
 
     @classmethod
     def get(cls, user_id):
@@ -53,6 +59,7 @@ class User(db.Model):
         return User(username = username,
                     password = hashed_password,
                     password_salt = user_salt,
+                    liked_posts = [],
                     email = email)
 
     @classmethod

@@ -14,7 +14,6 @@ class Post(db.Model):
     up_votes = db.IntegerProperty(default = 0)
     down_votes = db.IntegerProperty(default = 0)
     last_modified = db.DateTimeProperty(auto_now = True)
-    last_vote = db.DateTimeProperty(default = None)
 
     def add_up_vote(self):
 
