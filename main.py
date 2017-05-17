@@ -7,6 +7,7 @@ import webapp2
 import jinja2
 from cookies import CookieHandler
 from validation import Validation
+import decorators
 
 template_dir = os.path.join(os.path.dirname(__file__))
 theme_dir = os.path.join(os.path.dirname(__file__), 'theme')
@@ -136,19 +137,6 @@ class BaseHandler(webapp2.RequestHandler):
         '''
 
         return content.replace('<br>', '\n')
-
-    def is_users_post(self, p_id):
-
-        '''
-        Validates that a particular post
-        belongs to the logged in user
-        :param p_id: post_id to be validated
-        :return: True if the logged user owns the post
-        '''
-
-        p = Post.get_post(p_id)
-        if p.author == self.get_username() and p.user_id == self.get_user_id():
-            return True
 
 
 
@@ -321,14 +309,13 @@ class DeletePost(BaseHandler):
     '''
     Delete Post Handler
     '''
-
-    def get(self):
-        p_id = self.request.get("post_id")
+    @decorators.post_exists
+    @decorators.is_users_post
+    def get(self, post_id):
         if self.valid_user():
-            if self.is_users_post(p_id):
-                post = Post.get_post(p_id)
-                post.delete()
-                self.redirect('/')
+            post = Post.get_post(post_id)
+            post.delete()
+            self.redirect('/')
         else:
             self.redirect('/login')
 
@@ -339,26 +326,46 @@ class EditPost(BaseHandler):
     template: theme/edit-post
     '''
 
-    def get(self):
+    @decorators.post_exists
+    @decorators.is_users_post
+    def get(self, post_id):
         if self.valid_user():
             username = self.get_username()
-            p_id = self.request.get("post_id")
-            post = Post.get_post(p_id)
+            post = Post.get_post(post_id)
             post.content = self.reformat_content(post.content)
             self.render("edit-post.html", post=post, username=username)
         else:
             self.redirect('/login')
 
-    def post(self):
+    @decorators.post_exists
+    @decorators.is_users_post
+    def post(self, post_id):
         if self.valid_user():
-            p_id = self.request.get("post_id")
+
+            have_error = False
+            params = dict(error_title=None,
+                          error_content=None)
+
+            post = Post.get_post(post_id)
             title = self.request.get("title")
             content = self.request.get("content")
-            post = Post.get_post(int(p_id))
-            post.title = title
-            post.content = self.format_content(content)
-            post.put()
-            self.redirect('/articles/%s' % p_id)
+            # Validating post fields
+            if not Validation.valid_title(title):
+                have_error = True
+                params["error_title"] = "Title is too small"
+
+            if not Validation.valid_content(content):
+                have_error = True
+                params["error_content"] = "Content is too small"
+            if have_error:
+                post.content = self.reformat_content(post.content)
+                params["post"] = post
+                self.render("edit-post.html",  **params)
+            else:
+                post.title = title
+                post.content = self.format_content(content)
+                post.put()
+                self.redirect('/articles/%s' % post_id)
         else:
             self.redirect('/login')
 
@@ -371,11 +378,12 @@ class Articles(BaseHandler):
     template: theme/post.html
     '''
 
-    def get(self, p_id):
+    @decorators.post_exists
+    def get(self, post_id):
         username = self.get_username()
         user_id = self.get_user_id()
-        post = Post.get_post(p_id)
-        comments = Comment.by_post_id(p_id)
+        post = Post.get_post(post_id)
+        comments = Comment.by_post_id(post_id)
         self.render("post.html", post=post, username=username, comments=comments, user_id=user_id)
 
 
@@ -385,9 +393,9 @@ class Comments(BaseHandler):
     Comments Handler
     '''
 
-    def post(self):
+    @decorators.post_exists
+    def post(self, post_id):
         if self.valid_user():
-            post_id = self.request.get("post_id")
             content = self.request.get("comment")
             username = self.get_username()
             user_id = self.get_user_id()
@@ -395,8 +403,50 @@ class Comments(BaseHandler):
             new_comment.put()
             self.redirect('/articles/%s' % post_id)
         else:
-            post_id = self.request.get("post_id")
-            self.render('/articles/%s' % post_id, auth_error="You must be logged in to comment on a post")
+            self.redirect('/login')
+
+
+
+
+class DeleteComment(BaseHandler):
+
+    @decorators.comment_exists
+    @decorators.is_user_comment
+    def get(self, comment_id):
+        comment = Comment.get_comment(comment_id)
+        post_id = comment.post_id
+        if self.valid_user():
+            comment.delete()
+            self.redirect('/articles/%s' % post_id)
+        else:
+            self.redirect('/login')
+
+class EditComment(BaseHandler):
+
+    @decorators.comment_exists
+    @decorators.is_user_comment
+    def get(self, comment_id):
+            comment = Comment.get_comment(comment_id)
+            if self.valid_user():
+                comments = Comment.by_post_id(comment.post_id)
+                post = Post.get_post(comment.post_id)
+                username = self.get_username()
+                user_id = self.get_user_id()
+                self.render("post.html", post=post, username=username, comments=comments, user_id=user_id, edit_comment=True)
+            else:
+                self.redirect('/articles/%s' % comment.post_id)
+
+    @decorators.comment_exists
+    @decorators.is_user_comment
+    def post(self, comment_id):
+        comment = Comment.get_comment(comment_id)
+        if self.valid_user():
+            new_comment = self.request.get("comment")
+            comment.content = new_comment
+            comment.put()
+            self.redirect('/articles/%s' % comment.post_id)
+        else:
+            self.redirect('/articles/%s' % comment.post_id)
 
 
 class UpVotes(BaseHandler):
@@ -405,9 +455,9 @@ class UpVotes(BaseHandler):
     Up Vote handler
     '''
 
-    def get(self):
+    @decorators.post_exists
+    def get(self, post_id):
         if self.valid_user():
-            post_id = self.request.get('post_id')
             post = Post.get_post(post_id)
             username = self.get_username()
             comments = Comment.by_post_id(post_id)
@@ -433,9 +483,9 @@ class DownVote(BaseHandler):
     Down Vote Handler
     '''
 
-    def get(self):
+    @decorators.post_exists
+    def get(self, post_id):
         if self.valid_user():
-            post_id = self.request.get('post_id')
             username = self.get_username()
             comments = Comment.by_post_id(post_id)
             user_id = self.get_user_id()
@@ -448,6 +498,7 @@ class DownVote(BaseHandler):
         else:
             self.redirect('/login')
 
+
 # Defining routes and mapping to classes/handlers
 
 app = webapp2.WSGIApplication([('/', Home),
@@ -455,10 +506,13 @@ app = webapp2.WSGIApplication([('/', Home),
                                ('/login', Login),
                                ('/logout', Logout),
                                ('/posts', Posts),
-                               ('/posts/delete', DeletePost),
-                               ('/posts/edit', EditPost),
+                               ('/posts/delete/([0-9]+)', DeletePost),
+                               ('/posts/edit/([0-9]+)', EditPost),
                                ('/articles/([0-9]+)', Articles),
-                               ('/comments', Comments),
-                               ('/upvote', UpVotes),
-                               ('/downvote', DownVote)],
+                               ('/comments/([0-9]+)', Comments),
+                               ('/comments/delete/([0-9]+)', DeleteComment),
+                               ('/comments/edit/([0-9]+)', EditComment),
+                               ('/upvote/([0-9]+)', UpVotes),
+                               ('/downvote/([0-9]+)', DownVote)],
                               debug=True)
+

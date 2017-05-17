@@ -6,9 +6,6 @@
     <div class="row">
         <div class="col-md-12">
             <article>
-                {% if auth_error %}
-                    <p class="error bg-danger">{{ auth_error }} </p>
-                {% endif %}
                 {% if error %}
                     <p class="error bg-danger">{{ error }} </p>
                 {% endif %}
@@ -18,29 +15,28 @@
             </article>
             {% if user_id == post.user_id %}
                 <div class="actions-container col-md-6 col-xs-12 pull-left">
-                    <a class="btn btn-danger" href="/posts/delete?post_id={{ post.key().id() }}">Delete</a>
-                    <a class="btn btn-primary" href="/posts/edit?post_id={{ post.key().id() }}">Edit</a>
+                    <a class="btn btn-danger" href="/posts/delete/{{ post.key().id() }}">Delete</a>
+                    <a class="btn btn-primary" href="/posts/edit/{{ post.key().id() }}">Edit</a>
                 </div>
             {% endif %}
             <div class="vote-container col-md-6 col-xs-12 pull-right">
                 <div class="up-vote col-md-6 text-center">
-                    <a href="/upvote?post_id={{ post.key().id() }}"><i class="fa fa-thumbs-up" aria-hidden="true"></i>Awesome?</a>
+                    <a href="/upvote/{{ post.key().id() }}"><i class="fa fa-thumbs-up" aria-hidden="true"></i>Awesome?</a>
                     <p>[ {{ post.up_votes }} ]</p>
                 </div>
-                <div class="down-vote col-md-6 text-center">
-                    <a href="/downvote?post_id={{ post.key().id() }}"><i class="fa fa-thumbs-down" aria-hidden="true"></i>Sucks?</a>
+                <div class="down-vote col-xs-6 text-center">
+                    <a href="/downvote/{{ post.key().id() }}"><i class="fa fa-thumbs-down" aria-hidden="true"></i>Sucks?</a>
                     <p>[ {{ post.down_votes }} ]</p>
                 </div>
             </div>
         </div>
     </div>
     <div class="row">
-        <div class="add-comment-container col-md-12">
+        <div class="add-comment-container col-xs-12">
             <h2 class="post-subtitle"> Add Comments </h2>
-            <form action="/comments" method="post">
+            <form action="/comments/{{ post.key().id() }}" method="post">
                 <div class="form-group">
                     <textarea name="comment" id="comment" class="form-control" rows="5"></textarea>
-                    <input type="hidden" name="post_id" id="post_id" value="{{post.key().id()}} ">
                 </div>
                 <button type="submit" class="btn btn-default pull-right">Submit</button>
             </form>
@@ -49,14 +45,33 @@
         <div class="col-md-12">
             <h2 class="post-subtitle"> Comments: </h2>
             {% for comment in comments %}
-                <div class="comment-container">
-                    <div class="comment-user">
+                <div class="comment-container row">
+                    <div class="comment-user col-md-9 col-xs-12">
                         <h2> Comment by: {{ comment.username }} </h2>
                     </div>
-                    <div class="comment-content">
+                    {% if comment.user_id == post.user_id and not edit_comment %}
+                    <div class="comment-actions col-md-3 col-xs-12">
+                        <div class="col-md-6">
+                            <a class="btn btn-primary" href="/comments/edit/{{ comment.key().id() }} ">Edit</a>
+                        </div>
+                        <div class="col-md-6">
+                            <a class="btn btn-danger" href="/comments/delete/{{ comment.key().id() }} ">Delete</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if not edit_comment %}
+                    <div class="col-xs-12 comment-content">
                         <p> {{ comment.content }} </p>
                     </div>
-                    <div class="comment-date text-right">
+                    {% else %}
+                    <div class="col-xs-12 comment-content">
+                        <form class="col-xs-12" action="/comments/edit/{{ comment.key().id() }}" method="post">
+                            <textarea class="form-control" name="comment" id="comment_edit"  rows="5">{{ comment.content }}</textarea>
+                            <button type="submit" class="btn btn-success edit-comment pull-right">Edit</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                    <div class="col-xs-12 comment-date text-right">
                         Posted on: {{ comment.created_at.strftime("%b %d, %Y") }}
                     </div>
                 </div>

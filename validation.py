@@ -2,14 +2,13 @@ import re
 
 class Validation():
 
-
     '''
     Validation methods for strings
     imports re
     '''
 
-    # User validation regex
-    USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
+
+    USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$") # User validation regex
     @classmethod
     def valid_username(cls, username):
 
@@ -21,8 +20,7 @@ class Validation():
 
         return username and cls.USER_RE.match(username)
 
-    # Password validation regex
-    PASS_RE = re.compile(r"^.{3,20}$")
+    PASS_RE = re.compile(r"^.{3,20}$") # Password validation regex
     @classmethod
     def valid_password(cls, password):
 
@@ -34,8 +32,7 @@ class Validation():
 
         return password and cls.PASS_RE.match(password)
 
-    # Email validation regex
-    EMAIL_RE = re.compile(r'^[\S]+@[\S]+\.[\S]+$')
+    EMAIL_RE = re.compile(r'^[\S]+@[\S]+\.[\S]+$') # Email validation regex
     @classmethod
     def valid_email(cls, email):
 

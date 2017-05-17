@@ -91,10 +91,24 @@ textarea#content {
     margin-bottom: 15px;
 }
 
+.edit-comment {
+    margin-top:15px;
+}
+
+.comment-actions {
+    padding: 0 !important;
+    margin-bottom: 15px;
+}
+
+.comment-actions a {
+    width:100%;
+}
+
 .comment-content {
     background-color: #eee;
     padding: 15px;
     border: 1px solid #254B7C;
+    display: -webkit-box;
 
 }
 
