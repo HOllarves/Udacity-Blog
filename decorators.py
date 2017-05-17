@@ -29,8 +29,8 @@ def post_exists(f):
 def is_users_post(f):
 
     '''
-    Method decorator that checks if a post belongs to a user before allowing
-    the process to be executed.
+    Method decorator that checks if a post exists and
+    belongs to the user
     :param f: decorated function
     :return: decorated function.
     '''
@@ -49,7 +49,8 @@ def is_users_post(f):
 def is_user_comment(f):
 
     '''
-    Method decorator that checks if a user owns a specific comment
+    Method decorator that checks if a comment exists
+    and the user owns it
     :param f: 
     :return: 
     '''
@@ -58,36 +59,18 @@ def is_user_comment(f):
     def check_is_user_comment(self, c_id):
         user_id = self.get_user_id()
         comment = Comment.get_comment(c_id)
-        if user_id == comment.user_id:
+        if comment and user_id == comment.user_id:
             return f(self, c_id)
         else:
             self.redirect('/login')
             return
     return check_is_user_comment
 
-def comment_exists(f):
-
-    '''
-    Method that checks that a specific comment exists
-    :param f: decorated function
-    :return: decorated function
-    '''
-
-    @wraps(f)
-    def check_comment_exists(self, c_id):
-        comment = Comment.get_comment(c_id)
-        if comment:
-            return f(self, c_id)
-        else:
-            self.redirect('/')
-            return
-    return check_comment_exists
-
 def can_vote(f):
 
     '''
-    Method decorator that checks if a user can
-    vote in a specific post
+    Method decorator that checks if a post exists 
+    and that a user can vote in it
     :param f: decorated function
     :return: decorated function
     '''
@@ -97,7 +80,7 @@ def can_vote(f):
         post = Post.get_post(p_id)
         user_id = self.get_user_id()
         user = User.get(user_id)
-        if post.user_id != str(user.key().id()):
+        if post and  post.user_id != str(user.key().id()):
             if len(user.liked_posts) == 0:
                 return f(self, p_id)
             else:

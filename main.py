@@ -308,7 +308,6 @@ class DeletePost(BaseHandler):
     '''
     Delete Post Handler
     '''
-    @decorators.post_exists
     @decorators.is_users_post
     def get(self, post_id):
         if self.valid_user():
@@ -325,7 +324,6 @@ class EditPost(BaseHandler):
     template: theme/edit-post
     '''
 
-    @decorators.post_exists
     @decorators.is_users_post
     def get(self, post_id):
         if self.valid_user():
@@ -336,7 +334,6 @@ class EditPost(BaseHandler):
         else:
             self.redirect('/login')
 
-    @decorators.post_exists
     @decorators.is_users_post
     def post(self, post_id):
         if self.valid_user():
@@ -408,7 +405,6 @@ class Comments(BaseHandler):
 
 class DeleteComment(BaseHandler):
 
-    @decorators.comment_exists
     @decorators.is_user_comment
     def get(self, comment_id):
         comment = Comment.get_comment(comment_id)
@@ -421,7 +417,6 @@ class DeleteComment(BaseHandler):
 
 class EditComment(BaseHandler):
 
-    @decorators.comment_exists
     @decorators.is_user_comment
     def get(self, comment_id):
             comment = Comment.get_comment(comment_id)
@@ -434,7 +429,6 @@ class EditComment(BaseHandler):
             else:
                 self.redirect('/articles/%s' % comment.post_id)
 
-    @decorators.comment_exists
     @decorators.is_user_comment
     def post(self, comment_id):
         comment = Comment.get_comment(comment_id)
@@ -453,7 +447,6 @@ class UpVotes(BaseHandler):
     Up Vote handler
     '''
 
-    @decorators.post_exists
     @decorators.can_vote
     def get(self, post_id):
         if self.valid_user():
@@ -471,7 +464,6 @@ class DownVote(BaseHandler):
     Down Vote Handler
     '''
 
-    @decorators.post_exists
     @decorators.can_vote
     def get(self, post_id):
         if self.valid_user():
